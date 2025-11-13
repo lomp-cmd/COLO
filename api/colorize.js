@@ -1,30 +1,28 @@
-import Replicate from "replicate";
-import formidable from "formidable-serverless";
-import fs from "fs";
+// api/colorize.js
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-export const config = {
-  api: { bodyParser: false }
-};
+  try {
+    const { imageUrl } = await req.json();
 
-export default async (req, res) => {
-  const form = new formidable.IncomingForm();
-  form.parse(req, async (err, fields, files) => {
-    if (err) return res.status(500).send(err);
-
-    const replicate = new Replicate({
-      auth: process.env.REPLICATE_API_TOKEN,
+    const response = await fetch("https://api.replicate.com/v1/predictions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Token ${process.env.REPLICATE_API_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        version: "de2171b2a8604ec18b3d86dc87ccf76ff9120f9b9a0b37e2c12f49e6ab5a0aeb", // Beispielmodell
+        input: { image: imageUrl }
+      }),
     });
 
-    const filePath = files.file.path;
-    const fileBuffer = fs.readFileSync(filePath);
-
-    const output = await replicate.run(
-      "lllyasviel/paintschainer:latest",
-      {
-        input: { image: fileBuffer }
-      }
-    );
-
-    res.status(200).json({ output_url: output });
-  });
-};
+    const prediction = await response.json();
+    return res.status(200).json(prediction);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: error.message });
+  }
+}
