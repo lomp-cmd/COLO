@@ -6,7 +6,8 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "axios": "^1.6.0",
-    "vite": "^5.0.0"
+    "vite": "^5.0.0",
+    "replicate": "^0.7.2"
   },
   "scripts": {
     "dev": "vite",
